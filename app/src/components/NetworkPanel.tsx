@@ -7,7 +7,7 @@ export default function NetworkPanel() {
   // If the hook fails or is slow, destructuring might fail.
   // We provide defaults here just in case.
   const { myId, connectToPeer, connections = [], logs = [], status } = useP2P() || {};
-  const [targetId, setTargetId] = useState('');
+  const [targetId, setTargetId] = useState('node-');
 
   // 1. Guard against the hook being totally broken
   if (!connectToPeer) return <div className="text-red-500">P2P_HOOK_ERROR</div>;
