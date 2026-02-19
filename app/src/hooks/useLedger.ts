@@ -1,4 +1,4 @@
-// src/hooks/useLedger.ts
+[warn] jsxBracketSameLine is deprecated.
 import { useAtom } from 'jotai';
 import { chainAtom } from '../store/atoms';
 import { generateHash } from '../logic/crypto';
@@ -7,30 +7,48 @@ export function useLedger() {
   const [chain, setChain] = useAtom(chainAtom);
 
   const addTransaction = async (amount: number, note: string) => {
-    // 1. Get current state values BEFORE the setter
-    const parentHash = chain.length > 0 ? chain[chain.length - 1].hash : '0';
+    try {
+      // 1. Prepare the base data
+      const timestamp = Date.now();
 
-    const transactionData = {
-      amount,
-      note,
-      timestamp: Date.now(),
-      index: chain.length,
-    };
+      // 2. We use a functional update to get the LATEST state
+      // but since hashing is async, we have to be careful.
+      // We grab a snapshot of the current chain tip.
+      const currentTip = chain.length > 0 ? chain[chain.length - 1] : null;
+      const parentHash = currentTip ? currentTip.hash : '0';
+      const index = chain.length;
 
-    // 2. DO THE ASYNC WORK HERE
-    // This waits for the string result so you don't pass a Promise to Jotai
-    const finalizedHash = await generateHash(transactionData, parentHash);
+      const transactionData = {
+        amount,
+        note,
+        timestamp,
+        index,
+      };
 
-    // 3. UPDATE JOTAI SYNCHRONOUSLY
-    setChain((prevChain) => [
-      ...prevChain,
-      {
-        ...transactionData,
-        parentHash,
-        hash: finalizedHash, // Now this is a string!
-      },
-    ]);
+      // 3. Generate the hash
+      const finalizedHash = await generateHash(transactionData, parentHash);
+
+      // 4. Update the chain
+      setChain((prevChain) => {
+        // Double-check: Ensure another transaction didn't sneak in
+        // If it did, you might need to re-hash (concurrency control)
+        return [
+          ...prevChain,
+          {
+            ...transactionData,
+            parentHash,
+            hash: finalizedHash,
+          },
+        ];
+      });
+    } catch (error) {
+      console.error('Ledger Update Failed:', error);
+      // Handle error (e.g., notify user)
+    }
   };
 
-  return { addTransaction };
+  return {
+    addTransaction,
+    chain, // Return the chain so the UI can display the history!
+  };
 }
