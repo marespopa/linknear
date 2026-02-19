@@ -6,7 +6,7 @@ import Button from './forms/Button.tsx';
 export default function NetworkPanel() {
   // If the hook fails or is slow, destructuring might fail.
   // We provide defaults here just in case.
-  const { myId, connectToPeer, connections = [] } = useP2P() || {};
+  const { myId, connectToPeer, connections = [], logs = [], status } = useP2P() || {};
   const [targetId, setTargetId] = useState('');
 
   // 1. Guard against the hook being totally broken
@@ -28,6 +28,21 @@ export default function NetworkPanel() {
           </span>
         </div>
       </div>
+
+     <div className="mb-4 p-2 bg-gray-800 rounded">
+        <h3 className="text-[9px] text-gray-400 mb-1">Connection_Logs</h3>
+        <div className="h-24 overflow-y-auto text-[8px] text-gray-300">
+          {Array.isArray(logs) && logs.length > 0 ? (
+            logs.map((log, index) => (
+              <div key={index} className="mb-1">
+                {log}
+              </div>
+            ))
+          ) : (
+            <div className="text-gray-500">No logs available.</div>
+          )}
+        </div>
+      </div>    
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Input

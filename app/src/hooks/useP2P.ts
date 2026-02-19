@@ -12,25 +12,39 @@ export function useP2P() {
   const [chain, setChain] = useAtom(chainAtom);
   const [myId, setMyId] = useState<string>('');
   const [connections, setConnections] = useState<any[]>([]);
+  const [logs, setLogs] = useState<string[]>([]);
+
+  const peerRef = useRef<Peer | null>(null);
 
   // Refs for logic that doesn't need to trigger re-renders
   const connectionsRef = useRef<DataConnection[]>([]);
+  // Helper to add logs with timestamp and auto-trim to last 10 entries
+  const addLog = (message: string) => {
+    setLogs((prev) => [
+      ...prev,
+      `${new Date().toLocaleTimeString()}: ${message}`,
+    ].slice(-10));
+  };
 
   useEffect(() => {
     // 1. Initialize Peer (Signaling)
-    if (!globalPeer) {
-      globalPeer = new Peer();
-    }
-    const peer = globalPeer;
+    if (peerRef.current) return; // Already initialized
+
+    const newPeer = new Peer();
+    peerRef.current = newPeer;
+    const peer = peerRef.current;
 
     peer.on('open', (id) => {
-      console.log('Peer_Node_Ready:', id);
+      addLog(`ID_READY: ${id}`);
       setMyId(id);
     });
 
     // 2. Handle Incoming Connections
     const handleConnection = (conn: DataConnection) => {
+      addLog(`INCOMING_CONN: ${conn.peer.slice(0, 6)}`); 
       conn.on('open', () => {
+          addLog(`CONN_OPEN: ${conn.peer.slice(0, 6)}`);
+
         // Only add if not already in list
         if (!connectionsRef.current.find((c) => c.peer === conn.peer)) {
           connectionsRef.current = [...connectionsRef.current, conn];
@@ -38,23 +52,33 @@ export function useP2P() {
 
           // Immediate Sync: Send current chain to new peer
           conn.send(chain);
+
+      conn.on('data', (incomingData: any) => {
+        if (Array.isArray(incomingData)) {
+        // Use the functional updater (prev) to get the true current state
+            setChain((prevChain) => {
+     if (incomingData.length > prevChain.length) {
+        addLog(`DATA_IN: Received longer chain from ${conn.peer.slice(0, 6)}. Updating our chain.`);
+        console.log('Syncing: Received longer chain.');
+        return incomingData; 
+      } else if (incomingData.length < prevChain.length) {
+        // We are ahead, catch them up
+        addLog('DATA_IN: Received shorter chain from ' + conn.peer.slice(0, 6) + '. Sending our chain.');
+        console.log('Peer is behind. Sending our chain.');
+        conn.send(prevChain);
+        return prevChain;
+      }
+      return prevChain; // Chains are equal, do nothing
+    });
+  }
+});
+
         }
       });
 
-      conn.on('data', (data: any) => {
-        if (Array.isArray(data)) {
-          // CONFLICT RESOLUTION: Longest Chain Rule
-          if (data.length > chain.length) {
-            console.log('Syncing: Received longer chain.');
-            setChain(data);
-          } else if (data.length < chain.length) {
-            // We are ahead, catch them up
-            conn.send(chain);
-          }
-        }
-      });
 
       conn.on('close', () => {
+        addLog(`CONN_CLOSE: ${conn.peer.slice(0, 6)}`);
         connectionsRef.current = connectionsRef.current.filter(
           (c) => c.peer !== conn.peer
         );
@@ -62,6 +86,7 @@ export function useP2P() {
       });
 
       conn.on('error', (err) => {
+          addLog(`CONN_ERROR: ${conn.peer.slice(0, 6)} - ${err.message}`);
         console.error('Connection_Error:', err);
       });
     };
@@ -112,5 +137,7 @@ export function useP2P() {
     connections,
     connectToPeer,
     broadcast,
+    logs,
+    status: connections.length > 0 ? 'Connected' : 'Waiting'
   };
 }
