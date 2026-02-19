@@ -30,7 +30,9 @@ export default function NetworkPanel() {
       </div>
 
      <div className="mb-4 p-2 bg-gray-800 rounded">
-        <h3 className="text-[9px] text-gray-400 mb-1">Connection_Logs</h3>
+        <h3 className="text-[9px] text-gray-400 mb-1">
+            CONNECTION_LOGS ${status ? `(${status})` : ''}
+        </h3>
         <div className="h-24 overflow-y-auto text-[8px] text-gray-300">
           {Array.isArray(logs) && logs.length > 0 ? (
             logs.map((log, index) => (

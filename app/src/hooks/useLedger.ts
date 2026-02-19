@@ -1,4 +1,3 @@
-[warn] jsxBracketSameLine is deprecated.
 import { useAtom } from 'jotai';
 import { chainAtom } from '../store/atoms';
 import { generateHash } from '../logic/crypto';
