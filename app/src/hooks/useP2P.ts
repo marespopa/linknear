@@ -15,6 +15,15 @@ export function useP2P() {
   const peerRef = useRef<Peer | null>(null);
   const connectionsRef = useRef<DataConnection[]>([]);
 
+  // Inside useP2P.ts or your main view
+  useEffect(() => {
+    if (chain.length > 0 && connections.length > 0) {
+      broadcast(chain);
+            addLog(`BROADCASTING: Sent ${chain.length} blocks to peers.`);
+        }
+    }, [chain.length]); // Only trigger when the number of blocks changes
+
+
   const addLog = (message: string) => {
     setLogs((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`].slice(-10));
   };
@@ -70,8 +79,17 @@ export function useP2P() {
     const nanoid = customAlphabet('1234567890abcdef', 6);
     const friendlyId = `node-${nanoid()}`;
     
-    const peer = new Peer(friendlyId); 
+    const peer = new Peer(friendlyId, {
+     config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+    ],
+  },
+});
+
     peerRef.current = peer;
+
 
     peer.on('open', (id) => {
       addLog(`ID_READY: ${id}`);
