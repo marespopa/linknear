@@ -15,51 +15,49 @@ export function useP2P() {
   const peerRef = useRef<Peer | null>(null);
   const connectionsRef = useRef<DataConnection[]>([]);
 
-  // Inside useP2P.ts or your main view
-  useEffect(() => {
-    if (chain.length > 0 && connections.length > 0) {
-      broadcast(chain);
-            addLog(`BROADCASTING: Sent ${chain.length} blocks to peers.`);
-        }
-    }, [chain.length]); // Only trigger when the number of blocks changes
-
-
   const addLog = (message: string) => {
     setLogs((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`].slice(-10));
   };
 
   const setupConnectionListeners = (conn: DataConnection) => {
+    // 1. Handshake Logic
     conn.on('open', () => {
       addLog(`CONN_OPEN: ${conn.peer}`);
+      
       if (!connectionsRef.current.find((c) => c.peer === conn.peer)) {
         connectionsRef.current = [...connectionsRef.current, conn];
         setConnections([...connectionsRef.current]);
-        // Push our current state immediately upon connection
+        
+        // Critical: Send current state immediately so the other peer knows who we are
         conn.send(chain);
       }
     });
 
+    // 2. The Merge Logic
     conn.on('data', (incomingData: any) => {
       if (Array.isArray(incomingData)) {
         const remoteChain = incomingData as Block[];
-        
+        if (remoteChain.length === 0) return;
+
         setChain((prevChain) => {
-          // UNION MERGE: Combine both histories
+          // If our chain is empty, just take theirs
+          if (prevChain.length === 0) {
+            addLog(`INITIAL_SYNC: Adopted ${remoteChain.length} blocks.`);
+            return remoteChain;
+          }
+
+          // Union Merge: Combine and filter duplicates by hash
           const combined = [...prevChain, ...remoteChain];
-          
-          // Remove duplicates by checking the unique hash of each block
           const uniqueChain = combined.filter((block, index, self) =>
             index === self.findIndex((b) => b.hash === block.hash)
           );
 
-          // Sort by timestamp to keep the ledger chronological
           const sortedChain = uniqueChain.sort((a, b) => a.timestamp - b.timestamp);
 
           if (sortedChain.length > prevChain.length) {
-            addLog(`SYNC: Merged ledger. Total blocks: ${sortedChain.length}`);
-            // Broadcast the newly merged chain to everyone else
-            // broadcast(sortedChain); 
+            addLog(`MERGE: Ledger updated (+${sortedChain.length - prevChain.length} blocks)`);
           }
+          
           return sortedChain;
         });
       }
@@ -70,42 +68,46 @@ export function useP2P() {
       connectionsRef.current = connectionsRef.current.filter(c => c.peer !== conn.peer);
       setConnections([...connectionsRef.current]);
     });
+    
+    conn.on('error', (err) => {
+      addLog(`CONN_ERR: ${err.message}`);
+    });
   };
 
   useEffect(() => {
     if (peerRef.current) return;
 
-    // customAlphabet creates the function, then we call it with ()
+    // Use short ID for easy mobile typing
     const nanoid = customAlphabet('1234567890abcdef', 6);
     const friendlyId = `node-${nanoid()}`;
     
+    // Added Google STUN servers to help Phone <-> Tablet connection
     const peer = new Peer(friendlyId, {
-     config: {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-    ],
-  },
-});
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      }
+    }); 
 
     peerRef.current = peer;
-
 
     peer.on('open', (id) => {
       addLog(`ID_READY: ${id}`);
       setMyId(id);
     });
 
+    peer.on('connection', setupConnectionListeners);
+
     peer.on('error', (err) => {
       if (err.type === 'unavailable-id') {
-        addLog("ID_TAKEN: Attempting recovery...");
-        setTimeout(() => window.location.reload(), 2000);
+        addLog("ID_TAKEN: Retrying...");
+        setTimeout(() => window.location.reload(), 1500);
       } else {
         addLog(`PEER_ERR: ${err.type}`);
       }
     });
-
-    peer.on('connection', setupConnectionListeners);
 
     return () => {
       peer.off('connection', setupConnectionListeners);
@@ -116,13 +118,16 @@ export function useP2P() {
     if (!remoteId || remoteId === myId || !peerRef.current) return;
     if (connectionsRef.current.find((c) => c.peer === remoteId)) return;
 
+    addLog(`ATTEMPTING_CONN: ${remoteId}`);
     const conn = peerRef.current.connect(remoteId);
     setupConnectionListeners(conn);
   };
 
   const broadcast = (newChain: Block[]) => {
     connectionsRef.current.forEach((conn) => {
-      if (conn.open) conn.send(newChain);
+      if (conn.open) {
+        conn.send(newChain);
+      }
     });
   };
 
