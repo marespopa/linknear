@@ -16,7 +16,6 @@ module.exports = {
     ],
     // This catches the 'undefined' variables that cause blank screens
     'no-undef': 'error',
-    'no-unused-vars': 'warn'
+    'no-unused-vars': 'warn',
   },
-}
-
+};

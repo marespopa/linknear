@@ -14,7 +14,7 @@ interface State {
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
-    error: null
+    error: null,
   };
 
   public static getDerivedStateFromError(error: Error): State {
@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("NetworkPanel_Crash_Detected:", error, errorInfo);
+    console.error('NetworkPanel_Crash_Detected:', error, errorInfo);
   }
 
   public render() {
@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <p className="text-[9px] text-red-400 opacity-70 mb-4">
             Reason: {this.state.error?.message || 'Unknown_Network_Error'}
           </p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="text-[9px] bg-red-900/40 border border-red-500 px-2 py-1 text-red-200 hover:bg-red-500 hover:text-white transition-all"
           >
@@ -48,4 +48,3 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-

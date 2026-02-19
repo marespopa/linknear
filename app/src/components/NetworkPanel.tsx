@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useP2P } from '../hooks/useP2P.ts';
+import Input from './forms/Input.tsx';
+import Button from './forms/Button.tsx';
 
 export default function NetworkPanel() {
-  // If the hook fails or is slow, destructuring might fail. 
+  // If the hook fails or is slow, destructuring might fail.
   // We provide defaults here just in case.
   const { myId, connectToPeer, connections = [] } = useP2P() || {};
   const [targetId, setTargetId] = useState('');
@@ -13,36 +15,37 @@ export default function NetworkPanel() {
   return (
     <div className="border border-indigo-900 bg-black/40 p-4 font-mono">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-[10px] text-indigo-500 uppercase">Network_Protocol</h2>
+        <h2 className="text-[10px] text-indigo-500 uppercase">
+          Network_Protocol
+        </h2>
         <div className="flex items-center gap-2">
           {/* 2. Guard against connections being undefined */}
-          <span className={`h-2 w-2 rounded-full ${(connections?.length ?? 0) > 0 ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}></span>
-          <span className="text-[9px] text-indigo-300">{(connections?.length ?? 0)} Nodes_Active</span>
+          <span
+            className={`h-2 w-2 rounded-full ${(connections?.length ?? 0) > 0 ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}
+          ></span>
+          <span className="text-[9px] text-indigo-300">
+            {connections?.length ?? 0} Nodes_Active
+          </span>
         </div>
       </div>
 
-      <div className="mb-4">
-        <div className="text-[8px] text-indigo-700 uppercase mb-1">Local_Node_ID:</div>
-        <div className="bg-black border border-indigo-900 p-2 text-indigo-400 text-[10px] truncate">
-          {myId || "CONNECTING..."}
-        </div>
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <Input
+          value={myId || 'CONNECTING...'}
+          label="Local_Node_ID"
+          readOnly
+          canCopy
+        />
 
-      <div className="flex gap-2">
-        <input 
+        <Input
           value={targetId}
           onChange={(e) => setTargetId(e.target.value)}
-          placeholder="REMOTE_ID"
-          className="bg-black border border-indigo-900 text-indigo-300 p-2 flex-1 text-xs outline-none"
+          label="REMOTE_ID"
+          placeholder="Enter peer ID to connect"
         />
-        <button 
-          onClick={() => connectToPeer(targetId)}
-          className="bg-indigo-900 px-3 text-[10px] hover:bg-indigo-700"
-        >
-          SYNC
-        </button>
+
+        <Button onClick={() => connectToPeer(targetId)}>SYNC</Button>
       </div>
     </div>
   );
 }
-
