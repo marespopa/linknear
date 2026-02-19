@@ -5,9 +5,6 @@ import type { DataConnection } from 'peerjs';
 import { chainAtom } from '../store/atoms';
 import type { Block } from '../logic/crypto';
 
-// This prevents multiple Peer instances if the hook is called twice
-let globalPeer: Peer | null = null;
-
 export function useP2P() {
   const [chain, setChain] = useAtom(chainAtom);
   const [myId, setMyId] = useState<string>('');
@@ -20,10 +17,9 @@ export function useP2P() {
   const connectionsRef = useRef<DataConnection[]>([]);
   // Helper to add logs with timestamp and auto-trim to last 10 entries
   const addLog = (message: string) => {
-    setLogs((prev) => [
-      ...prev,
-      `${new Date().toLocaleTimeString()}: ${message}`,
-    ].slice(-10));
+    setLogs((prev) =>
+      [...prev, `${new Date().toLocaleTimeString()}: ${message}`].slice(-10)
+    );
   };
 
   useEffect(() => {
@@ -41,9 +37,9 @@ export function useP2P() {
 
     // 2. Handle Incoming Connections
     const handleConnection = (conn: DataConnection) => {
-      addLog(`INCOMING_CONN: ${conn.peer.slice(0, 6)}`); 
+      addLog(`INCOMING_CONN: ${conn.peer.slice(0, 6)}`);
       conn.on('open', () => {
-          addLog(`CONN_OPEN: ${conn.peer.slice(0, 6)}`);
+        addLog(`CONN_OPEN: ${conn.peer.slice(0, 6)}`);
 
         // Only add if not already in list
         if (!connectionsRef.current.find((c) => c.peer === conn.peer)) {
@@ -53,29 +49,33 @@ export function useP2P() {
           // Immediate Sync: Send current chain to new peer
           conn.send(chain);
 
-      conn.on('data', (incomingData: any) => {
-        if (Array.isArray(incomingData)) {
-        // Use the functional updater (prev) to get the true current state
-            setChain((prevChain) => {
-     if (incomingData.length > prevChain.length) {
-        addLog(`DATA_IN: Received longer chain from ${conn.peer.slice(0, 6)}. Updating our chain.`);
-        console.log('Syncing: Received longer chain.');
-        return incomingData; 
-      } else if (incomingData.length < prevChain.length) {
-        // We are ahead, catch them up
-        addLog('DATA_IN: Received shorter chain from ' + conn.peer.slice(0, 6) + '. Sending our chain.');
-        console.log('Peer is behind. Sending our chain.');
-        conn.send(prevChain);
-        return prevChain;
-      }
-      return prevChain; // Chains are equal, do nothing
-    });
-  }
-});
-
+          conn.on('data', (incomingData: any) => {
+            if (Array.isArray(incomingData)) {
+              // Use the functional updater (prev) to get the true current state
+              setChain((prevChain) => {
+                if (incomingData.length > prevChain.length) {
+                  addLog(
+                    `DATA_IN: Received longer chain from ${conn.peer.slice(0, 6)}. Updating our chain.`
+                  );
+                  console.log('Syncing: Received longer chain.');
+                  return incomingData;
+                } else if (incomingData.length < prevChain.length) {
+                  // We are ahead, catch them up
+                  addLog(
+                    'DATA_IN: Received shorter chain from ' +
+                      conn.peer.slice(0, 6) +
+                      '. Sending our chain.'
+                  );
+                  console.log('Peer is behind. Sending our chain.');
+                  conn.send(prevChain);
+                  return prevChain;
+                }
+                return prevChain; // Chains are equal, do nothing
+              });
+            }
+          });
         }
       });
-
 
       conn.on('close', () => {
         addLog(`CONN_CLOSE: ${conn.peer.slice(0, 6)}`);
@@ -86,7 +86,7 @@ export function useP2P() {
       });
 
       conn.on('error', (err) => {
-          addLog(`CONN_ERROR: ${conn.peer.slice(0, 6)} - ${err.message}`);
+        addLog(`CONN_ERROR: ${conn.peer.slice(0, 6)} - ${err.message}`);
         console.error('Connection_Error:', err);
       });
     };
@@ -138,6 +138,7 @@ export function useP2P() {
     connectToPeer,
     broadcast,
     logs,
-    status: connections.length > 0 ? 'Connected' : 'Waiting'
+    status: connections.length > 0 ? 'Connected' : 'Waiting',
   };
 }
+
