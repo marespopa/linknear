@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAtom } from 'jotai';
 import Peer from 'peerjs';
 import type { DataConnection } from 'peerjs';
+import { customAlphabet } from 'nanoid';
 import { chainAtom } from '../store/atoms';
 import type { Block } from '../logic/crypto';
 
@@ -56,7 +57,8 @@ export function useP2P() {
     if (peerRef.current) return;
 
     // Use a human-friendly ID or let PeerJS generate one
-    const newPeer = new Peer(); 
+    const friendlyId = `node-${customAlphabet('1234567890abcdef', 6)()}`;
+    const newPeer = new Peer(friendlyId); 
     peerRef.current = newPeer;
 
     newPeer.on('open', (id) => {
