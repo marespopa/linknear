@@ -19,6 +19,29 @@ export function useP2P() {
     setLogs((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`].slice(-10));
   };
 
+  // 1. Reactive Broadcast: Watch for local changes and push to peers
+  useEffect(() => {
+    if (chain.length > 0 && connectionsRef.current.length > 0) {
+      // We only broadcast if there are active, open connections
+      const openConnections = connectionsRef.current.filter(c => c.open);
+      
+      if (openConnections.length > 0) {
+        broadcast(chain);
+        // Optional: addLog(`Pushed update: ${chain.length} blocks`);
+      }
+    }
+  }, [chain]); // Fires every time the Jotai 'chain' state changes
+
+  // 2. Refined Broadcast with open-check
+  const broadcast = (newChain: Block[]) => {
+    connectionsRef.current.forEach((conn) => {
+      if (conn.open) {
+        // We use a small optimization here: PeerJS handles the serialization
+        conn.send(newChain);
+      }
+    });
+  };
+
   const setupConnectionListeners = (conn: DataConnection) => {
     // 1. Handshake Logic
     conn.on('open', () => {
@@ -121,14 +144,6 @@ export function useP2P() {
     addLog(`ATTEMPTING_CONN: ${remoteId}`);
     const conn = peerRef.current.connect(remoteId);
     setupConnectionListeners(conn);
-  };
-
-  const broadcast = (newChain: Block[]) => {
-    connectionsRef.current.forEach((conn) => {
-      if (conn.open) {
-        conn.send(newChain);
-      }
-    });
   };
 
   return { 
