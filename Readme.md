@@ -1,3 +1,4 @@
+
 # LinkNext: NFC Business Card & Scanner ⚡️
 
 **LinkNext** is a React Native application that leverages **Host Card Emulation (HCE)** to share digital business cards (vCards) phone-to-phone and explores **EMV/ISO-DEP** protocols to read contactless data.
