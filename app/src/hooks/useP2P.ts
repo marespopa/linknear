@@ -16,15 +16,17 @@ export function useP2P() {
   const connectionsRef = useRef<DataConnection[]>([]);
 
   const addLog = (message: string) => {
-    setLogs((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`].slice(-10));
+    setLogs((prev) =>
+      [...prev, `${new Date().toLocaleTimeString()}: ${message}`].slice(-10)
+    );
   };
 
   // 1. Reactive Broadcast: Watch for local changes and push to peers
   useEffect(() => {
     if (chain.length > 0 && connectionsRef.current.length > 0) {
       // We only broadcast if there are active, open connections
-      const openConnections = connectionsRef.current.filter(c => c.open);
-      
+      const openConnections = connectionsRef.current.filter((c) => c.open);
+
       if (openConnections.length > 0) {
         broadcast(chain);
         // Optional: addLog(`Pushed update: ${chain.length} blocks`);
@@ -46,52 +48,65 @@ export function useP2P() {
     // 1. Handshake Logic
     conn.on('open', () => {
       addLog(`CONN_OPEN: ${conn.peer}`);
-      
+
       if (!connectionsRef.current.find((c) => c.peer === conn.peer)) {
         connectionsRef.current = [...connectionsRef.current, conn];
         setConnections([...connectionsRef.current]);
-        
+
         // Critical: Send current state immediately so the other peer knows who we are
         conn.send(chain);
       }
     });
 
-    // 2. The Merge Logic
     conn.on('data', (incomingData: any) => {
-      if (Array.isArray(incomingData)) {
+      if (Array.isArray(incomingData) && incomingData.length > 0) {
         const remoteChain = incomingData as Block[];
-        if (remoteChain.length === 0) return;
 
         setChain((prevChain) => {
-          // If our chain is empty, just take theirs
+          // 1. If local chain is empty, adopt the remote one immediately
           if (prevChain.length === 0) {
             addLog(`INITIAL_SYNC: Adopted ${remoteChain.length} blocks.`);
             return remoteChain;
           }
 
-          // Union Merge: Combine and filter duplicates by hash
-          const combined = [...prevChain, ...remoteChain];
-          const uniqueChain = combined.filter((block, index, self) =>
-            index === self.findIndex((b) => b.hash === block.hash)
+          // 2. Use a Map to enforce uniqueness by hash (O(n) complexity)
+          // Maps automatically overwrite existing keys, preventing duplicates.
+          const chainMap = new Map<string, Block>();
+
+          // Load existing blocks
+          prevChain.forEach((block) => chainMap.set(block.hash, block));
+
+          // Merge remote blocks (overwriting only if hash matches)
+          remoteChain.forEach((block) => chainMap.set(block.hash, block));
+
+          // 3. Convert back to array and sort by chronological order
+          const mergedArray = Array.from(chainMap.values());
+          const sortedChain = mergedArray.sort(
+            (a, b) => a.timestamp - b.timestamp
           );
 
-          const sortedChain = uniqueChain.sort((a, b) => a.timestamp - b.timestamp);
+          // 4. Only update state if the chain actually grew
+          const newBlocksCount = sortedChain.length - prevChain.length;
 
-          if (sortedChain.length > prevChain.length) {
-            addLog(`MERGE: Ledger updated (+${sortedChain.length - prevChain.length} blocks)`);
+          if (newBlocksCount > 0) {
+            addLog(`MERGE: Ledger updated (+${newBlocksCount} blocks)`);
+            return sortedChain;
           }
-          
-          return sortedChain;
+
+          // If no new unique hashes were found, return the old reference to skip re-render
+          return prevChain;
         });
       }
     });
 
     conn.on('close', () => {
       addLog(`CONN_CLOSE: ${conn.peer}`);
-      connectionsRef.current = connectionsRef.current.filter(c => c.peer !== conn.peer);
+      connectionsRef.current = connectionsRef.current.filter(
+        (c) => c.peer !== conn.peer
+      );
       setConnections([...connectionsRef.current]);
     });
-    
+
     conn.on('error', (err) => {
       addLog(`CONN_ERR: ${err.message}`);
     });
@@ -103,16 +118,16 @@ export function useP2P() {
     // Use short ID for easy mobile typing
     const nanoid = customAlphabet('1234567890abcdef', 6);
     const friendlyId = `node-${nanoid()}`;
-    
+
     // Added Google STUN servers to help Phone <-> Tablet connection
     const peer = new Peer(friendlyId, {
       config: {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
-        ]
-      }
-    }); 
+          { urls: 'stun:stun1.l.google.com:19302' },
+        ],
+      },
+    });
 
     peerRef.current = peer;
 
@@ -125,7 +140,7 @@ export function useP2P() {
 
     peer.on('error', (err) => {
       if (err.type === 'unavailable-id') {
-        addLog("ID_TAKEN: Retrying...");
+        addLog('ID_TAKEN: Retrying...');
         setTimeout(() => window.location.reload(), 1500);
       } else {
         addLog(`PEER_ERR: ${err.type}`);
@@ -146,13 +161,12 @@ export function useP2P() {
     setupConnectionListeners(conn);
   };
 
-  return { 
-    myId, 
-    connections, 
-    connectToPeer, 
-    broadcast, 
-    logs, 
-    status: connections.length > 0 ? 'Connected' : 'Waiting' 
+  return {
+    myId,
+    connections,
+    connectToPeer,
+    broadcast,
+    logs,
+    status: connections.length > 0 ? 'Connected' : 'Waiting',
   };
 }
-
