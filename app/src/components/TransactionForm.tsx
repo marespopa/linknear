@@ -4,67 +4,82 @@ import { chainAtom } from '../store/atoms';
 import { generateHash } from '../logic/crypto';
 import Input from './forms/Input';
 import Button from './forms/Button';
-import { type Block } from '../logic/crypto';
 
 export default function TransactionForm() {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
-
-  // --- New State for Feedback ---
+  const [type, setType] = useState<'expense' | 'income'>('expense');
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-
   const [chain, setChain] = useAtom(chainAtom);
 
-  const handleSubmit = async () => {
-    // Reset error at start of new attempt
-    setError(null);
+  const isInitial = chain.length === 0;
 
+  /**
+   * Converts strings like "walmart store" to "WalmartStore"
+   * Handles spaces, underscores, and hyphens.
+   */
+  const formatNote = (str: string, isInitial: boolean): string => {
+    if (isInitial) return 'Initial Balance';
+    if (!str) return '';
+
+    return str
+      .toLowerCase()
+      .split(/[\s_-]+/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('');
+  };
+
+  /**
+   * Handles form submission for both initial balance and regular transactions.
+   * Validates input, generates a new block, and updates the chain state.
+   */
+  const handleSubmit = async () => {
+    setError(null);
     const numericAmount = parseFloat(amount);
+
     if (isNaN(numericAmount) || numericAmount <= 0) {
-      setError('Invalid_Amount: Must be greater than 0');
+      setError('Invalid_Amount: Please enter a positive value');
       return;
     }
 
-    if (note.trim() === '') {
-      setError('Invalid_Note: Cannot be empty');
+    if (!isInitial && note.trim() === '') {
+      setError('Invalid_Note: Merchant is required');
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      const parentHash = chain.length > 0 ? chain[chain.length - 1].hash : '0';
-      const formattedNote = note
-          .toLowerCase()
-          .split(/[\s_-]+/)
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join('');
+      const parentHash = !isInitial ? chain[chain.length - 1].hash : '0';
 
+      const finalAmount =
+        isInitial || type === 'income' ? numericAmount : numericAmount * -1;
+
+      const formattedNote = formatNote(note, isInitial);
       const transactionData = {
-        amount: numericAmount,
+        amount: finalAmount,
         note: formattedNote,
         timestamp: Date.now(),
         index: chain.length,
       };
 
-      // If generateHash fails or throws, it jumps to 'catch'
       const hash = await generateHash(transactionData, parentHash);
 
-      const newBlock: Block = {
-        ...transactionData,
-        parentHash,
-        hash,
-      };
+      setChain([...chain, { ...transactionData, parentHash, hash }]);
 
-      setChain([...chain, newBlock]);
-
-      // Success: Clear inputs
+      // Reset State
       setNote('');
       setAmount('');
-    } catch (err) {
-      // Handle the error visually
-      setError('Crypto_Failure: Could not generate block hash');
+      setType('expense');
+    } catch (err: any) {
+      if (err?.name === "QuotaExceededError") {
+        setError('Storage_Error: Local storage quota exceeded. Please clear some space and try again.');
+        console.error('Storage quota exceeded:', err);
+        return;
+      }
+
+      setError('Crypto_Error: Block link failed');
       console.error(err);
     } finally {
       setIsProcessing(false);
@@ -72,42 +87,71 @@ export default function TransactionForm() {
   };
 
   return (
-    <div className="space-y-4 border border-indigo-900 p-4 bg-black/20">
-      {/* --- Error Display Area --- */}
+    <div className="p-4 border border-indigo-900 bg-black/40 backdrop-blur-md rounded-lg">
+      {/* Header Info */}
+      <div className="mb-6">
+        <h2 className="text-[10px] font-mono text-indigo-400 uppercase tracking-widest">
+          {isInitial ? 'Wallet Initialization' : 'Add Transaction'}
+        </h2>
+      </div>
+
       {error && (
-        <div className="bg-red-900/20 border border-red-500 text-red-400 p-2 text-xs font-mono animate-pulse">
-          [!] ERROR: {error}
+        <div className="mb-4 p-2 border border-red-500/50 bg-red-500/10 text-red-400 text-[10px] font-mono animate-pulse">
+          [!] {error}
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
-        <label className="text-[10px] text-indigo-300 uppercase tracking-widest">
-          Entry_Amount {isProcessing && ' - [Processing...]'}
-        </label>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Input
-            type="number"
-            label="Amount"
-            value={amount}
-            placeholder="0.00"
-            disabled={isProcessing}
-            onChange={(e) => setAmount(e.target.value)}
-            className="bg-black border border-indigo-900 text-indigo-300 p-2 w-24 outline-none focus:border-indigo-400 font-mono disabled:opacity-50"
-          />
-          <Input
-            type="text"
-            value={note}
-            label="Merchant"
-            placeholder="Where did you spend it?"
-            disabled={isProcessing}
-            onChange={(e) => setNote(e.target.value)}
-            className="flex-1 bg-black border border-indigo-900 text-indigo-300 p-2 outline-none focus:border-indigo-400 font-mono text-sm disabled:opacity-50"
-          />
-          <Button onClick={handleSubmit} disabled={isProcessing}>
-            {isProcessing ? 'Hashing...' : 'Add_Transaction'}
+      {/* Transaction Type Toggle */}
+      {!isInitial && (
+        <div className="flex mb-6 gap-2 w-full">
+          <Button
+            onClick={() => setType('expense')}
+            className={`w-full ${type === 'expense' ? '' : 'opacity-40 grayscale'}`}
+          >
+            EXPENSE
+          </Button>
+          <Button
+            onClick={() => setType('income')}
+            className={`w-full ${type === 'income' ? '' : 'opacity-40 grayscale'}`}
+          
+            >
+            INCOME
           </Button>
         </div>
+      )}
+
+      <div className="space-y-4">
+        <Input
+          label={isInitial ? 'Starting Capital' : 'Amount'}
+          type="number"
+          value={amount}
+          placeholder="0.00"
+          disabled={isProcessing}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+
+        {!isInitial && (
+          <Input
+            label="Merchant / Note"
+            type="text"
+            value={note}
+            placeholder="e.g. Grocery Store"
+            disabled={isProcessing}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        )}
+
+        <Button
+          onClick={handleSubmit}
+          disabled={isProcessing}
+          className="w-full mt-4"
+        >
+          {isProcessing
+            ? 'GENERATING_HASH...'
+            : isInitial
+              ? 'INITIALIZE WALLET'
+              : 'ADD TRANSACTION'}
+        </Button>
       </div>
     </div>
   );

@@ -61,5 +61,19 @@ export async function validateBlock(
 ): Promise<boolean> {
   const { hash, ...data } = block;
   const recalculatedHash = await generateHash(data, parentHash);
+
   return hash === recalculatedHash;
 }
+
+// Generates a "Seal" for the entire month's data
+export const generateMonthSeal = async (
+  lastBlockHash: string,
+  totalBalance: number
+) => {
+  const data = `${lastBlockHash}-${totalBalance}`;
+  const msgUint8 = new TextEncoder().encode(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+};
