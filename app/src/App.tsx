@@ -27,7 +27,7 @@ export default function App() {
         <header className="border-b border-indigo-900 pb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <h1 className="text-xs uppercase tracking-[0.3em] text-indigo-100 mb-2">
-              TRANSACTIONS_LEDGER
+              LINK_NEAR_WALLET
             </h1>
             <div className="text-5xl font-bold text-white tracking-tighter">
               ${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
