@@ -5,6 +5,18 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+      minify: 'esbuild', // Use esbuild for faster minification
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              return 'vendor'; // Bundle all node_modules into a single vendor chunk
+            }
+          },
+        },
+      },
+    },
   plugins: [
     react(),
     tailwindcss(),
