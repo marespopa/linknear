@@ -35,10 +35,15 @@ export default function TransactionForm() {
 
     try {
       const parentHash = chain.length > 0 ? chain[chain.length - 1].hash : '0';
+      const formattedNote = note
+          .toLowerCase()
+          .split(/[\s_-]+/)
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
 
       const transactionData = {
         amount: numericAmount,
-        note: note,
+        note: formattedNote,
         timestamp: Date.now(),
         index: chain.length,
       };
@@ -93,14 +98,14 @@ export default function TransactionForm() {
           <Input
             type="text"
             value={note}
-            label="Note"
-            placeholder="What is this for?"
+            label="Merchant"
+            placeholder="Where did you spend it?"
             disabled={isProcessing}
             onChange={(e) => setNote(e.target.value)}
             className="flex-1 bg-black border border-indigo-900 text-indigo-300 p-2 outline-none focus:border-indigo-400 font-mono text-sm disabled:opacity-50"
           />
           <Button onClick={handleSubmit} disabled={isProcessing}>
-            {isProcessing ? 'Hashing...' : 'Add_Block'}
+            {isProcessing ? 'Hashing...' : 'Add_Transaction'}
           </Button>
         </div>
       </div>
