@@ -1,6 +1,7 @@
 // src/App.tsx
 import { useAtomValue } from 'jotai';
 import { balanceAtom } from './store/atoms';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 import TransactionForm from './components/TransactionForm';
 import TransactionHistory from './components/TransactionHistory';
 import NetworkPanel from './components/NetworkPanel';
@@ -9,6 +10,15 @@ import Button from './components/forms/Button';
 
 export default function App() {
   const balance = useAtomValue(balanceAtom);
+
+  useRegisterSW({
+    onRegistered(r) {
+      console.log('Service Worker registered:', r);
+    },
+    onRegisterError(error) {
+      console.error('Service Worker registration failed:', error);
+    },
+  });
 
   return (
     <div className="min-h-screen bg-indigo-950 text-indigo-300 font-mono p-4 md:p-8">
