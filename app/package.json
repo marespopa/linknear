@@ -13,6 +13,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.2.0",
     "clsx": "^2.1.1",
+    "idb-keyval": "^6.2.2",
     "jotai": "^2.18.0",
     "lucide-react": "^0.574.0",
     "nanoid": "^5.1.6",

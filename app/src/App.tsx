@@ -1,6 +1,6 @@
 // src/App.tsx
 import { useAtom, useAtomValue } from 'jotai';
-import { balanceAtom, privacyAtom } from './store/atoms';
+import { balanceAtom, currencyAtom, privacyAtom } from './store/atoms';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import TransactionForm from './components/TransactionForm';
 import TransactionHistory from './components/TransactionHistory';
@@ -9,6 +9,7 @@ import SectionHeader from './components/ui/SectionHeader';
 
 export default function App() {
   const balance = useAtomValue(balanceAtom);
+  const currency = useAtomValue(currencyAtom);
   const [isPrivateMode, setIsPrivateMode] = useAtom(privacyAtom);
 
   useRegisterSW({
@@ -23,7 +24,7 @@ export default function App() {
   const balanceDisplay = isPrivateMode
     ? '****.**'
     : balance.toLocaleString(undefined, { minimumFractionDigits: 2 });
-  
+
   return (
     <div className="min-h-screen bg-indigo-950 text-indigo-300 font-mono p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-8">
@@ -34,10 +35,17 @@ export default function App() {
               LINK_NEAR_WALLET
             </h1>
             <div
-              className="text-5xl font-bold text-white tracking-tighter"
+              className="text-5xl font-bold text-white cursor-pointer select-none"
               onClick={() => setIsPrivateMode(!isPrivateMode)}
             >
-              {balanceDisplay}
+              <span className="text-white font-bold text-4xl tabular-nums">
+                <span className="text-sm font-light text-indigo-300 align-top mr-1 inline-block mt-1">
+                  {currency}
+                </span>
+                <span className="tracking-tighter">
+                  {balanceDisplay}
+                </span>
+              </span>
             </div>
           </div>
         </header>
@@ -55,8 +63,8 @@ export default function App() {
           </section>
 
           <section>
-           <SectionHeader title="Data_Settings" />
-           <Settings />
+            <SectionHeader title="Data_Settings" />
+            <Settings />
           </section>
         </div>
         {/* System Footer */}

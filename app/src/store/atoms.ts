@@ -2,6 +2,7 @@ import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import type { Block } from '../logic/crypto';
 
+export const currencyAtom = atomWithStorage<string>('git-fi-currency', 'USD');
 export const chainAtom = atomWithStorage<Block[]>('git-fi-chain', []);
 export const privacyAtom = atomWithStorage<boolean>(
   'git-fi-private-mode',
