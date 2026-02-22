@@ -1,12 +1,42 @@
 import { useAtomValue } from 'jotai';
 import { chainAtom } from '../store/atoms';
 import { type Block } from '../logic/crypto';
+import Button from './forms/Button';
 
 export default function TransactionHistory() {
   const chain = useAtomValue(chainAtom);
 
   // We clone and reverse so the newest 'Blocks' appear at the top
   const logs = [...chain].reverse();
+
+  const copyFilteredCsvToClipboard = async () => {
+    if (logs.length === 0) return;
+
+    // 1. Define the fields you want and the header row
+    const fields = ['timestamp', 'amount', 'note'] as const;
+    const header = fields.join(',');
+
+    // 2. Map only those specific fields for each row
+    const rows = logs.map((obj) => {
+      return fields
+        .map((field) => {
+          const value = obj[field];
+          // Escape quotes and wrap in double quotes for CSV safety
+          return `"${String(value).replace(/"/g, '""')}"`;
+        })
+        .join(',');
+    });
+
+    // 3. Combine and copy
+    const csvString = [header, ...rows].join('\n');
+
+    try {
+      await navigator.clipboard.writeText(csvString);
+      console.log('Filtered CSV copied!');
+    } catch (err) {
+      console.error('Clipboard error:', err);
+    }
+  };
 
   return (
     <div className="border border-indigo-900 bg-black/40 rounded-sm overflow-hidden font-mono">
@@ -15,7 +45,14 @@ export default function TransactionHistory() {
         <span className="text-[10px] uppercase tracking-widest text-indigo-300">
           Ledger_Logs
         </span>
-        <span className="text-[9px] text-indigo-500">Active_Nodes: 01</span>
+        <span>
+          <Button
+            variant="primary"
+            onClick={() => copyFilteredCsvToClipboard()}
+          >
+            Copy to CSV
+          </Button>
+        </span>
       </div>
 
       {/* Logs Container */}
