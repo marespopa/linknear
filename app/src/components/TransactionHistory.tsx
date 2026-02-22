@@ -76,7 +76,7 @@ export default function TransactionHistory() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] bg-indigo-900/40 text-indigo-300 px-1 py-0.5 rounded border border-indigo-800/50">
-                      TRANSACTION_{block.index || logs.length - i}
+                      TRANSACTION_{logs.length - i}
                     </span>
                     <span className="text-[10px] text-indigo-500">
                       {new Date().toLocaleTimeString()}
