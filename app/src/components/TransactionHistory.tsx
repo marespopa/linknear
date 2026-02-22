@@ -13,7 +13,7 @@ export default function TransactionHistory() {
       {/* Terminal Header */}
       <div className="bg-indigo-950/50 px-3 py-1.5 border-b border-indigo-900 flex justify-between items-center">
         <span className="text-[10px] uppercase tracking-widest text-indigo-300">
-          Transaction.History // Ledger_Logs
+          Ledger_Logs
         </span>
         <span className="text-[9px] text-indigo-500">Active_Nodes: 01</span>
       </div>

@@ -4,6 +4,8 @@ import { balanceAtom } from './store/atoms';
 import TransactionForm from './components/TransactionForm';
 import TransactionHistory from './components/TransactionHistory';
 import NetworkPanel from './components/NetworkPanel';
+import SectionHeader from './components/ui/SectionHeader';
+import Button from './components/forms/Button';
 
 export default function App() {
   const balance = useAtomValue(balanceAtom);
@@ -26,23 +28,46 @@ export default function App() {
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 gap-6">
           <section>
-            <h2 className="text-[10px] uppercase mb-3 ml-1">// Input_Buffer</h2>
+            <SectionHeader title="Input_Buffer" />
             <TransactionForm />
           </section>
 
           <section>
-            <h2 className="text-[10px] uppercase mb-3 ml-1">// Ledger_State</h2>
+            <SectionHeader title="Transaction_History" />
             <TransactionHistory />
           </section>
 
           <section>
-            <h2 className="text-[10px] uppercase mb-3 ml-1">
-              // Network_Status
-            </h2>
+            <SectionHeader title="Network_Status" />
             <NetworkPanel />
           </section>
-        </div>
 
+          <section>
+            <SectionHeader title="Data_Settings" />
+            <div className="bg-black/40 p-4 rounded-lg text-sm text-indigo-300">
+              <Button
+                variant="primary"
+                className="w-full mb-2"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      'Are you sure you want to clear all data? This action cannot be undone.'
+                    )
+                  ) {
+                    localStorage.clear();
+                    window.location.reload();
+                  }
+                }}
+              >
+                Clear Data
+              </Button>
+              <p className="text-xs text-indigo-400">
+                Warning: Clearing data will reset your transaction history and
+                balance. This action cannot be undone.
+              </p>
+            </div>
+          </section>
+        </div>
         {/* System Footer */}
         <footer className="pt-4 border-t border-indigo-950 text-center">
           <p className="text-[9px] text-indigo-300 uppercase">
