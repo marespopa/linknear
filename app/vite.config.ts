@@ -23,10 +23,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate', // Automatically updates the app when new code is deployed
       manifest: {
-        name: 'LinkNear Wallet',
+        name: 'LinkNear',
         short_name: 'LinkNear',
-        description: 'Wallet Tool',
-        theme_color: '#4F46E5',
+        description: 'Turn your debts into monsters and slay them.',
+        theme_color: '#010a13',
         icons: [
           {
             src: 'pwa-192x192.png',

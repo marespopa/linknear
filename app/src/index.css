@@ -1,1 +1,109 @@
 @import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Light theme (default) */
+  --color-arcane-black: #f5f3ee;
+  --color-arcane-navy: #e8e4d8;
+  --color-arcane-navy-light: #d8d3c5;
+  --color-arcane-blue: #0a8a7e;
+  --color-arcane-gold: #9c7a2e;
+  --color-arcane-gold-light: #7c6024;
+
+  --color-black: #ffffff;
+  --color-white: #111111;
+  --color-slate-300: #2b2a28;
+  --color-slate-400: #54514a;
+  --color-slate-500: #7a766c;
+  --color-slate-600: #7a766c;
+
+  --font-display: 'Cinzel', 'Atkinson Hyperlegible', ui-serif, serif;
+  --font-sans: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
+}
+
+.theme-transitioning,
+.theme-transitioning * {
+  transition: none !important;
+}
+
+html,
+body {
+  background-color: var(--color-arcane-black);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+  20%,
+  80% {
+    transform: translateX(2px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-4px);
+  }
+  40%,
+  60% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(4px) scale(0.9);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(0) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-28px) scale(1);
+    opacity: 0;
+  }
+}
+
+.dark {
+  --color-arcane-black: #010a13;
+  --color-arcane-navy: #0a1428;
+  --color-arcane-navy-light: #1e2328;
+  --color-arcane-blue: #0ac8b9;
+  --color-arcane-gold: #c89b3c;
+  --color-arcane-gold-light: #c8aa6e;
+
+  --color-black: #000000;
+  --color-white: #ffffff;
+  /* Shifted one step lighter than the raw Tailwind slate ramp — against the
+     near-black arcane-black background, the original 500/600 values landed
+     at ~4.2:1 and ~2.6:1 contrast, both under WCAG AA's 4.5:1 minimum. */
+  --color-slate-300: #f1f5f9;
+  --color-slate-400: #cbd5e1;
+  --color-slate-500: #94a3b8;
+  --color-slate-600: #64748b;
+}

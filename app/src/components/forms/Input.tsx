@@ -32,7 +32,7 @@ const Input = ({
     <div className="flex flex-col gap-1.5 w-full">
       <label
         htmlFor={inputId}
-        className={`text-xs font-bold uppercase tracking-wider text-indigo-500 font-mono ${hideLabel ? 'sr-only' : ''}`}
+        className={`text-xs font-bold uppercase tracking-wider text-slate-500 font-display ${hideLabel ? 'sr-only' : ''}`}
       >
         {label}
       </label>
@@ -42,18 +42,18 @@ const Input = ({
           id={inputId}
           {...props}
           className={`
-            bg-black 
-            border border-indigo-900 
-            text-indigo-300 
-            p-2 
-            h-10
-            w-full 
-            outline-none 
-            focus:border-indigo-400 
-            font-mono 
-            disabled:opacity-50 
+            bg-black
+            border border-arcane-navy
+            text-slate-300
+            text-base
+            p-2
+            h-11
+            w-full
+            outline-none
+            focus:border-arcane-gold
+            disabled:opacity-50
             transition-all
-            ${props.readOnly ? 'cursor-default focus:border-indigo-900' : 'cursor-text'}
+            ${props.readOnly ? 'cursor-default focus:border-arcane-navy' : 'cursor-text'}
             ${canCopy ? 'pr-10' : ''} 
             ${className || ''}
           `}
@@ -63,7 +63,7 @@ const Input = ({
           <button
             type="button"
             onClick={handleCopy}
-            className="absolute right-2 p-1 text-indigo-500 hover:text-indigo-300 transition-colors"
+            className="absolute right-1 p-2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
           >
             {copied ? (
               <Check size={16} className="text-green-500" />

@@ -14,13 +14,13 @@ const Button = ({
 }: ButtonProps) => {
   // Base styles that all buttons share
   const baseStyles =
-    'px-3 py-2 text-[10px] font-mono font-bold uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2';
+    'min-h-11 px-4 py-2 text-[10px] font-display font-bold uppercase tracking-widest transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2';
 
   // Variant specific styles
   const variants = {
-    primary: 'bg-indigo-900 text-indigo-100 hover:bg-indigo-700',
+    primary: 'bg-arcane-navy text-arcane-gold-light hover:bg-arcane-navy-light',
     outline:
-      'border border-indigo-900 text-indigo-400 hover:border-indigo-400 hover:text-indigo-200',
+      'border border-arcane-navy text-arcane-gold hover:border-arcane-gold hover:text-arcane-gold-light',
     danger:
       'bg-red-900/20 border border-red-900 text-red-400 hover:bg-red-900 hover:text-white',
   };
