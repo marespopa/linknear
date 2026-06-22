@@ -15,7 +15,13 @@ import HPBar from './ui/HPBar.tsx';
 import Button from './forms/Button.tsx';
 import Input from './forms/Input.tsx';
 
-const BESTIARY_ORDER: BossTier[] = ['Goblin', 'DarkElf', 'Troll', 'Wyrm', 'Archlich'];
+const BESTIARY_ORDER: BossTier[] = [
+  'Goblin',
+  'DarkElf',
+  'Troll',
+  'Wyrm',
+  'Archlich',
+];
 
 const CURRENCY_OPTIONS = ['$', '€', '£', '¥', 'lei'];
 
@@ -69,7 +75,10 @@ const Onboarding = () => {
               {BESTIARY_ORDER.map((tier) => {
                 const TierIcon = TIER_ICONS[tier];
                 return (
-                  <div key={tier} className="flex flex-col items-center gap-1 w-14">
+                  <div
+                    key={tier}
+                    className="flex flex-col items-center gap-1 w-14"
+                  >
                     <div
                       className={`w-11 h-11 rounded-full flex items-center justify-center ${TIER_COLORS[tier].bg}`}
                     >
@@ -100,7 +109,11 @@ const Onboarding = () => {
               <p className="text-[10px] uppercase tracking-widest text-slate-500">
                 The Chase Goblin Skulker
               </p>
-              <HPBar current={1700} max={4250} label={`${currency}1,700 / ${currency}4,250`} />
+              <HPBar
+                current={1700}
+                max={4250}
+                label={`${currency}1,700 / ${currency}4,250`}
+              />
               <p className="text-[10px] text-slate-500">
                 One good hit, and this Goblin falls.
               </p>
@@ -114,8 +127,8 @@ const Onboarding = () => {
               Choose Your Realm
             </p>
             <p className="text-sm text-slate-300">
-              Walk the realm by torchlight, or under open sky — pick the look
-              of your campaign. You can change this anytime.
+              Walk the realm by torchlight, or under open sky — pick the look of
+              your campaign. You can change this anytime.
             </p>
             <div className="flex gap-2">
               {(
@@ -187,7 +200,7 @@ const Onboarding = () => {
               label="Your Hero Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Mares"
+              placeholder=""
             />
           </div>
         )}

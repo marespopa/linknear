@@ -2,7 +2,13 @@
 import { useEffect } from 'react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { Moon, Sun, Swords } from 'lucide-react';
-import { currentViewAtom, debtsAtom, hasOnboardedAtom, themeAtom, type View } from './store/atoms';
+import {
+  currentViewAtom,
+  debtsAtom,
+  hasOnboardedAtom,
+  themeAtom,
+  type View,
+} from './store/atoms';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import Dashboard from './pages/Dashboard';
 import History from './pages/History';
