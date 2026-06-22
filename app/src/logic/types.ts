@@ -15,6 +15,9 @@ export interface Debt {
   defeatedAt?: number;
   isRevolving?: boolean;
   closedAt?: number;
+  // Manual override for the card's art-panel color, picked per bank/creditor.
+  // Unset falls back to the automatic tier-based color.
+  cardColor?: string;
 }
 
 export interface Player {

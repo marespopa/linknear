@@ -18,7 +18,11 @@
   --color-slate-500: #7a766c;
   --color-slate-600: #7a766c;
 
-  --font-display: 'Cinzel', 'Atkinson Hyperlegible', ui-serif, serif;
+  /* Atkinson Hyperlegible is designed for readability at small sizes and
+     low contrast (it's the Braille Institute's low-vision typeface) — the
+     decorative Cinzel serif it replaced here was hard to read in the tiny
+     uppercase labels used throughout the UI, especially in dark mode. */
+  --font-display: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -87,6 +91,27 @@ body {
     transform: translateY(-28px) scale(1);
     opacity: 0;
   }
+}
+
+.flip-card-scene {
+  perspective: 1200px;
+}
+
+.flip-card-card {
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.flip-card-card.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-card-face {
+  backface-visibility: hidden;
+}
+
+.flip-card-face-back {
+  transform: rotateY(180deg);
 }
 
 .dark {

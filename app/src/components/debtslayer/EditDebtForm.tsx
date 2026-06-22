@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import money from 'currency.js';
 import type { Debt } from '../../logic/types.ts';
 import { getBossTier, generateBossName } from '../../logic/boss.ts';
+import { CARD_COLOR_OPTIONS } from '../../logic/cardColors.ts';
 import { parseDecimal } from '../../logic/currency.ts';
 import Input from '../forms/Input.tsx';
 import Button from '../forms/Button.tsx';
@@ -22,6 +23,7 @@ const EditDebtForm = ({ debt, onSave, onCancel }: EditDebtFormProps) => {
   const [minimumPayment, setMinimumPayment] = useState(String(debt.minimumPayment));
   const [interestRate, setInterestRate] = useState(String(debt.interestRate));
   const [isRevolving, setIsRevolving] = useState(Boolean(debt.isRevolving));
+  const [cardColor, setCardColor] = useState(debt.cardColor);
   const { confirm } = useConfirm();
 
   const canSave =
@@ -56,6 +58,7 @@ const EditDebtForm = ({ debt, onSave, onCancel }: EditDebtFormProps) => {
       bossName: generateBossName(tier, creditor.trim()),
       defeatedAt: isDefeated ? debt.defeatedAt ?? Date.now() : undefined,
       isRevolving,
+      cardColor,
     });
   };
 
@@ -123,6 +126,41 @@ const EditDebtForm = ({ debt, onSave, onCancel }: EditDebtFormProps) => {
         />
         This is a credit line (I can reborrow against it)
       </label>
+
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 font-display">
+            Card Color
+          </p>
+          <button
+            type="button"
+            onClick={() => setCardColor(undefined)}
+            className={`px-2 py-0.5 rounded-full text-[10px] font-display font-bold uppercase tracking-wide border transition-all cursor-pointer ${
+              !cardColor
+                ? 'border-arcane-gold text-arcane-gold'
+                : 'border-arcane-navy text-slate-500 hover:border-arcane-gold-light hover:text-arcane-gold-light'
+            }`}
+          >
+            Auto (by size)
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {CARD_COLOR_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              aria-label={option.label}
+              title={option.label}
+              onClick={() => setCardColor(option.id)}
+              className={`w-7 h-7 rounded-full ${option.bg} border-2 transition-all cursor-pointer ${
+                cardColor === option.id
+                  ? 'border-arcane-gold scale-110'
+                  : 'border-transparent hover:border-arcane-navy-light'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
 
       <div className="flex gap-2">
         <Button type="submit" variant="primary" disabled={!canSave} className="w-full">
